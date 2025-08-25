@@ -3,14 +3,14 @@ from modelos import CampoAgricola, Estacion, SensorSuelo, SensorCultivo
 
 def cargar_xml(rutaArchivo):
     try:
-        print(f"Leyendo archivo: {rutaArchivo}")
+        print(f"\nLeyendo archivo: {rutaArchivo}")
         arbol = ET.parse(rutaArchivo) #Parsea el XML a un arbol de elementos
         raiz = arbol.getroot() #Obtiene el elemento raiz
         campos = []
 
         #Iterar sobre todos los elementos campo en el XML
         for campo_elemento in raiz.findall("campo"):
-            print(f"Procesando campo: {campo_elemento.get("nombre")}")
+            print(f"Procesando campo: {campo_elemento.get('nombre')}")
 
             #Objeto CampoAgricola
             campo = CampoAgricola(
@@ -24,7 +24,7 @@ def cargar_xml(rutaArchivo):
                 for estacion_elemento in estaciones_elemento.findall("estacion"):
                     estacion = Estacion(
                         estacion_elemento.get("id"),
-                        estacion_elemento.get("nomvbre")
+                        estacion_elemento.get("nombre")
                     )
 
                     campo.estaciones.agregar(estacion)
@@ -37,19 +37,19 @@ def cargar_xml(rutaArchivo):
                     sensor = SensorSuelo(
                         sensor_elemento.get("id"),
                         sensor_elemento.get("nombre")
-                )
-
-                #procesar las frecuencias del sensor
-                for freq_elemento in sensor_elemento.findall("frecuencia"):
-                    #strip() elimina espacios en blanco alrededor del texto
-                    valor = int(freq_elemento.text.strip()) if freq_elemento.text else 0
-                    sensor.agregar_frecuencia(
-                        freq_elemento.get("idEstacion"),
-                        valor
                     )
 
-                campo.sensores_suelo.agregar(sensor)
-                print(f"Sensor suelo agregado: {sensor.id}")
+                    #procesar las frecuencias del sensor
+                    for freq_elemento in sensor_elemento.findall("frecuencia"):
+                        #strip() elimina espacios en blanco alrededor del texto
+                        valor = int(freq_elemento.text.strip()) if freq_elemento.text else 0
+                        sensor.agregarFrecuencia(
+                            freq_elemento.get("idEstacion"),
+                            valor
+                        )
+
+                    campo.sensores_suelo.agregar(sensor)
+                    print(f"Sensor suelo agregado: {sensor.id}")
 
             #PROCESAR SENSORES DE CULTIVO
             sensores_cultivo_elemento = campo_elemento.find("sensoresCultivo")
