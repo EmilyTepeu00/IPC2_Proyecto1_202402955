@@ -1,4 +1,4 @@
-from xml_utils import cargar_xml
+from xml_utils import cargar_xml, escribir_xml_salida
 from procesamiento import procesarCampo
 
 def mostrarDatos():
@@ -90,8 +90,26 @@ def main():
 
         #ESCRIBIR ARCHIVO DE SALIDA
         elif opcion == "3":
-            if datos_cargados:
-                print("no hay")
+            if datos_cargados and datos_procesados:
+                print("\nGENERAR ARCHIVO DE SALIDA")
+
+                ruta = input("Ingrese la ruta del archivo: ").strip()
+                nombre = input("Ingrese el nombre del archivo: ").strip()
+
+                archivo_completo = (f"{ruta}/{nombre}") if ruta else nombre
+
+                #Asegurar que el archivo sea .xml
+                if not archivo_completo.endswith('.xml'):
+                    archivo_completo += '.xml'
+
+                #Escribir el archivo de salida
+                exito = escribir_xml_salida(archivo_completo, datos_cargados, datos_procesados)
+
+                if exito:
+                    print("Archivo de salida generado con exito") 
+                else:
+                    print("Error al generar el archivo de salida")
+
             else:
                 print("\nERROR: Primero debe cargar y procesar un archivo")
 
