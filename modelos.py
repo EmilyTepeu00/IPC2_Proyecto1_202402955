@@ -93,10 +93,14 @@ class MatrizFrecuencia:
     
     #Obtener el indice de un valor en una lista
     def _obtenerIndice(self, lista, valor):
-        for i, item in enumerate(lista):
-            if item == valor:
-                return i
-            return None
+        actual = lista.primero
+        indice = 0
+        while actual:
+            if actual.dato == valor: #Compara el dato del nodo
+                return indice
+            actual = actual.siguiente
+            indice += 1
+        return None
         
     #Obtener elemento por inidice de ListaEnlazada
     def _obtenerElemento(self, lista, indice):
@@ -172,9 +176,13 @@ class MatrizPatron:
         return actual1 is None and actual2 is None
     
     def _obtenerIndice(self, lista, valor):
-        for i, item in enumerate(lista):
-            if item == valor:
-                return i
+        actual = lista.primero
+        indice = 0
+        while actual:
+            if actual.dato == valor: #Compara el dato del nodo
+                return indice
+            actual = actual.siguiente
+            indice += 1
         return None
     
     def _obtenerElemento(self, lista, indice):
@@ -214,3 +222,23 @@ class GrupoEstaciones:
             estaciones_str.append(actual.dato)
             actual = actual.siguiente
         return (f"Grupo({self.estaciones.tamaño()} estaciones: {', '.join(estaciones_str)})")
+    
+class GrupoEstacionesUnificado:
+    def __init__(self, patron_suelo, patron_cultivo):
+        self.patron_suelo = patron_suelo
+        self.patron_cultivo = patron_cultivo
+        self.estaciones = ListaEnlazada()
+        self.frecuencias_totales_suelo = ListaEnlazada()
+        self.frecuencias_totales_cultivo = ListaEnlazada()
+
+    def agregarEstacion(self, idEstacion):
+        self.estaciones.agregar(idEstacion)
+
+    def __str__(self):
+        estaciones_str = []
+        actual = self.estaciones.primero
+        while actual:
+            estaciones_str.append(actual.dato)
+            actual = actual.siguiente
+        return (f"GrupoUnificado({self.estaciones.tamaño()} estaciones: {', '.join(estaciones_str)})")
+    

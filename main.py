@@ -79,8 +79,7 @@ def main():
                     #Mostrar resumen de agrupamiento
                     for i, resultado in enumerate(datos_procesados):
                         print(f"\nCampo {datos_cargados[i].id}:")
-                        print(f"  - Grupos sensores suelo: {resultado['grupos_suelo'].tamaño()}")
-                        print(f"  - Grupos sensores cultivo: {resultado['grupos_cultivo'].tamaño()}")
+                        print(f"  - Grupos unificados: {resultado['grupos_unificados'].tamaño()}")
 
                 else:
                     print("No se pudo procesar ningun campo")

@@ -108,10 +108,10 @@ def escribir_xml_salida(rutaArchivo, campo_originales, resultados_procesamiento)
             estaciones_reducidas = ET.SubElement(campo_elemento, "estacionesBaseReducidas")
 
             #Obtener grupos de suelo
-            grupos_suelo = resultado['grupos_suelo']
+            grupos_unificados = resultado['grupos_unificados']
 
-            #Estaciones reducidas
-            actual_grupo = grupos_suelo.primero
+            #Estaciones reducidas basadas en grupos unificados
+            actual_grupo = grupos_unificados.primero
             grupo_index = 1
             while actual_grupo:
                 grupo = actual_grupo.dato
@@ -120,7 +120,7 @@ def escribir_xml_salida(rutaArchivo, campo_originales, resultados_procesamiento)
                 nombres_estaciones = ListaEnlazada()
                 actual_estacion = grupo.estaciones.primero
                 while actual_estacion:
-                    #Buscar la estacion original 
+                    # Buscar la estación original
                     estacion_original = None
                     actual_est_orig = campo_original.estaciones.primero
                     while actual_est_orig:
@@ -144,7 +144,7 @@ def escribir_xml_salida(rutaArchivo, campo_originales, resultados_procesamiento)
 
                 #Elemento estacion reducida
                 estacion_reducida = ET.SubElement(estaciones_reducidas, "estacion")
-                estacion_reducida.set("id", f"e{grupo_index:02d}")
+                estacion_reducida.set("id", f"e{grupo_index:02d}")  # e01, e02, e03...
                 estacion_reducida.set("nombre", nombres_str)
 
                 actual_grupo = actual_grupo.siguiente
@@ -162,29 +162,29 @@ def escribir_xml_salida(rutaArchivo, campo_originales, resultados_procesamiento)
                 sensor_elemento.set("id", sensor_original.id)
                 sensor_elemento.set("nombre", sensor_original.nombre)
 
-                #Asignar frecuencias a los grupos correspondientes
-                actual_grupo = grupos_suelo.primero
+                #Asignar frecuencias a los grupos correspondientes (suelo)
+                actual_grupo = grupos_unificados.primero
                 grupo_index = 1
                 while actual_grupo:
                     grupo = actual_grupo.dato
 
                     #Obtener el indice del sensor en la matriz
                     idx_sensor = 0
-                    actual_sensorID = resultado['matriz_f_suelo'].sensores.primero
-                    while actual_sensorID:
-                        if actual_sensorID.dato == sensor_original.id:
+                    actual_sensor_id = resultado['matriz_f_suelo'].sensores.primero
+                    while actual_sensor_id:
+                        if actual_sensor_id.dato == sensor_original.id:
                             break
                         idx_sensor += 1
-                        actual_sensorID = actual_sensorID.siguiente
+                        actual_sensor_id = actual_sensor_id.siguiente
 
                     #Obtener frecuencia total del sensor en el grupo
-                    frecuencia_valor = obtener_elemento_lista(grupo.frecuenciasTotales, idx_sensor)
+                    frecuencia_valor = obtener_elemento_lista(grupo.frecuencias_totales_suelo, idx_sensor)
 
                     if frecuencia_valor > 0:
                         frecuencia_elemento = ET.SubElement(sensor_elemento, "frecuencia")
                         frecuencia_elemento.set("idEstacion", f"e{grupo_index:02d}")
-                        frecuencia_elemento.text = f" {frecuencia_valor} "
-
+                        frecuencia_elemento.text = f" {frecuencia_valor} "  # Con espacios como en el ejemplo
+                    
                     actual_grupo = actual_grupo.siguiente
                     grupo_index += 1
 
@@ -198,28 +198,28 @@ def escribir_xml_salida(rutaArchivo, campo_originales, resultados_procesamiento)
             actual_sensor_original = campo_original.sensores_cultivo.primero
             while actual_sensor_original:
                 sensor_original = actual_sensor_original.dato
-
+                
                 sensor_elemento = ET.SubElement(sensores_cultivo_elemento, "sensorT")
                 sensor_elemento.set("id", sensor_original.id)
                 sensor_elemento.set("nombre", sensor_original.nombre)
 
-                #Asignar frecuencias a los grupos correspondientes
-                actual_grupo = resultado['grupos_cultivo'].primero
+                #Asignar frecuencias a los grupos correspondientes (cultivo)
+                actual_grupo = grupos_unificados.primero
                 grupo_index = 1
                 while actual_grupo:
                     grupo = actual_grupo.dato
 
                     #Obtener el indice del sensor en la matriz
                     idx_sensor = 0
-                    actual_sensorID = resultado['matriz_f_cultivo'].sensores.primero
-                    while actual_sensorID:
-                        if actual_sensorID.dato == sensor_original.id:
+                    actual_sensor_id = resultado['matriz_f_cultivo'].sensores.primero
+                    while actual_sensor_id:
+                        if actual_sensor_id.dato == sensor_original.id:
                             break
                         idx_sensor += 1
-                        actual_sensorID = actual_sensorID.siguiente
+                        actual_sensor_id = actual_sensor_id.siguiente
 
                     #Obtener frecuencia total  del sensor en el grupo
-                    frecuencia_valor = obtener_elemento_lista(grupo.frecuenciasTotales, idx_sensor)
+                    frecuencia_valor = obtener_elemento_lista(grupo.frecuencias_totales_cultivo, idx_sensor)
 
                     if frecuencia_valor > 0:
                         frecuencia_elemento = ET.SubElement(sensor_elemento, "frecuencia")
@@ -236,7 +236,7 @@ def escribir_xml_salida(rutaArchivo, campo_originales, resultados_procesamiento)
         ET.indent(arbol, space="    ", level=0)
         arbol.write(rutaArchivo, encoding="utf-8", xml_declaration=True)
 
-        print(f"Archivo de salida escrito exitosamente: {rutaArchivo}")
+        print(f"Archivo de salida escrito con exito: {rutaArchivo}")
         return True
         
     except Exception as e:

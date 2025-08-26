@@ -1,4 +1,4 @@
-from modelos import MatrizFrecuencia, MatrizPatron, GrupoEstaciones
+from modelos import MatrizFrecuencia, MatrizPatron, GrupoEstaciones, GrupoEstacionesUnificado
 from lista import ListaEnlazada
 
 #MATRIZ DE FRECUENCIA PARA SENSORES DE SUELO
@@ -72,7 +72,7 @@ def construirMatrizPatron(matrizFrecuencia):
     print("Matriz de patrones construida")
     return matriz_patron
 
-#Agrupar estaciones con el mismo patron binarip
+#AGRUPAR ESTACIONES CON EL MISMO PATRON BINARIO
 def agruparEstacionesPatron(matriz_patron):
     print("Agrupando estaciones por patron...")
 
@@ -105,33 +105,121 @@ def agruparEstacionesPatron(matriz_patron):
     print(f"Se formaron {grupos.tamaño()} grupos de estaciones")
     return grupos
 
-# CALCULAR LAS FRECUENCIAS TOTALES 
-def calcularFrecuenciasGrupo(grupo, matrizFrecuencia):
-    #Inicializar frecuencias totales
-    actual_sensor = matrizFrecuencia.sensores.primero
-    while actual_sensor:
-        grupo.frecuenciasTotales.agregar(0)
-        actual_sensor = actual_sensor.siguiente
+#PARA VERIFICAR SI EL ELEMENTO CUMPLE CON EL PREDICADO
+def any(lista, predicado):
+    actual = lista.primero
+    while actual:
+        if predicado(actual.dato):
+            return True
+        actual = actual.siguiente
+    return False
 
-    #Suma de todas las frecuencias
+#GRUPOS UNIFICADOS BASADOS EN LOS "PATRONES" DE LAS 2 MATRICES
+def agruparEstacionesUnificado(matriz_p_suelo, matriz_p_cultivo): #p: patron
+    print("Creando grupos unificados...")
+
+    grupos = ListaEnlazada()
+    estaciones_procesadas = ListaEnlazada()
+
+    #Recorrer todas las estaciones
+    actual_estacion = matriz_p_suelo.estaciones.primero
+    while actual_estacion:
+        idEstacion = actual_estacion.dato
+
+        #Si ya se procesó la estacion, saltar
+        if any(estaciones_procesadas, lambda x: x == idEstacion):
+            actual_estacion = actual_estacion.siguiente
+            continue
+
+        #Obtener patrones de ambas matrices
+        patron_suelo = matriz_p_suelo.obtenerPatronEstacion(idEstacion)
+        patron_cultivo = matriz_p_cultivo.obtenerPatronEstacion(idEstacion)
+
+        #Para crear nuevo grupo unificado
+        nuevo_grupo = GrupoEstacionesUnificado(patron_suelo, patron_cultivo)
+        nuevo_grupo.agregarEstacion(idEstacion)
+        estaciones_procesadas.agregar(idEstacion)
+
+        #Buscar estaciones con el mismo patron combinado
+        actual_estacion2 = actual_estacion.siguiente
+        while actual_estacion2:
+            idEstacion2 = actual_estacion2.dato
+
+            if any(estaciones_procesadas, lambda x: x == idEstacion2):
+                actual_estacion2 = actual_estacion2.siguiente
+                continue
+
+            patron_suelo2 = matriz_p_suelo.obtenerPatronEstacion(idEstacion2)
+            patron_cultivo2 = matriz_p_cultivo.obtenerPatronEstacion(idEstacion2)
+
+            if (matriz_p_suelo.patronesIguales(patron_suelo, patron_suelo2) and 
+                matriz_p_cultivo.patronesIguales(patron_cultivo, patron_cultivo2)):
+                
+                nuevo_grupo.agregarEstacion(idEstacion2)
+                estaciones_procesadas.agregar(idEstacion2)
+
+            actual_estacion2 = actual_estacion2.siguiente
+
+        grupos.agregar(nuevo_grupo)
+        actual_estacion = actual_estacion.siguiente
+
+    print(f"Se formaron {grupos.tamaño()} grupos unificados")
+    return grupos
+
+#GRUPOS UNIFICADOS BASADOS EN LAS "FRECUENCIAS" DE LAS 2 MATRICES
+def calcularFrecuenciasGrupoUnificado(grupo, matriz_f_suelo, matriz_f_cultivo): #f: frecuencia
+    print(f"Calculando frecuencias para grupo con {grupo.estaciones.tamaño()} estaciones...")
+
+    #Limpiar listas existentes
+    grupo.frecuencias_totales_suelo.limpiar()
+    grupo.frecuencias_totales_cultivo.limpiar()
+
+    #Inicializar frecuencias para sensores de suelo
+    actual_sensor_suelo = matriz_f_suelo.sensores.primero
+    while actual_sensor_suelo:
+        grupo.frecuencias_totales_suelo.agregar(0)
+        actual_sensor_suelo = actual_sensor_suelo.siguiente
+
+    #Inializar frecuencias para sensores de cultivo
+    actual_sensor_cultivo = matriz_f_cultivo.sensores.primero
+    while actual_sensor_cultivo:
+        grupo.frecuencias_totales_cultivo.agregar(0)
+        actual_sensor_cultivo = actual_sensor_cultivo.siguiente
+
+    #Suma de frecuencias de todas las estaciones del grupo
     actual_estacion = grupo.estaciones.primero
     while actual_estacion:
         idEstacion = actual_estacion.dato
 
+        #Para sensores de suelo
         idx_sensor = 0
-        actual_sensor = matrizFrecuencia.sensores.primero
+        actual_sensor = matriz_f_suelo.sensores.primero
         while actual_sensor:
             idSensor = actual_sensor.dato
-            valor = matrizFrecuencia.obtenerValor(idEstacion, idSensor)
+            valor = matriz_f_suelo.obtenerValor(idEstacion, idSensor)
 
-            #Actualizar la suma total (¡CORREGIDO!)
-            valor_actual = obtener_elemento_lista(grupo.frecuenciasTotales, idx_sensor)
-            establecer_elemento_lista(grupo.frecuenciasTotales, idx_sensor, valor_actual + valor)
+            valor_actual = obtener_elemento_lista(grupo.frecuencias_totales_suelo, idx_sensor)
+            establecer_elemento_lista(grupo.frecuencias_totales_suelo, idx_sensor, valor_actual + valor)
+
+            idx_sensor += 1
+            actual_sensor = actual_sensor.siguiente
+
+        #Para sensores de cultivo
+        idx_sensor = 0
+        actual_sensor = matriz_f_cultivo.sensores.primero
+        while actual_sensor:
+            idSensor = actual_sensor.dato
+            valor = matriz_f_cultivo.obtenerValor(idEstacion, idSensor)
+
+            valor_actual = obtener_elemento_lista(grupo.frecuencias_totales_cultivo, idx_sensor)
+            establecer_elemento_lista(grupo.frecuencias_totales_cultivo, idx_sensor, valor_actual + valor)
 
             idx_sensor += 1
             actual_sensor = actual_sensor.siguiente
 
         actual_estacion = actual_estacion.siguiente
+
+    print(f"Frecuencias calculadas para cada grupo")
 
 #PROCESAR UN CAMPO AGRICOLA POR COMPLETO
 def procesarCampo(campo):
@@ -144,20 +232,14 @@ def procesarCampo(campo):
     #Construir matrices de patrones
     matriz_p_suelo = construirMatrizPatron(matriz_f_suelo)
     matriz_p_cultivo = construirMatrizPatron(matriz_f_cultivo)
+
+    #Grupos unificados
+    grupos_unificados = agruparEstacionesUnificado(matriz_p_suelo, matriz_p_cultivo)
     
-    #Agrupar estaciones
-    grupos_suelo = agruparEstacionesPatron(matriz_p_suelo)
-    grupos_cultivo = agruparEstacionesPatron(matriz_p_cultivo)
-    
-    #Calcular frecuencias totales para cada grupo
-    actual_grupo = grupos_suelo.primero
+    # Calcular frecuencias totales para ambos tipos de sensores
+    actual_grupo = grupos_unificados.primero
     while actual_grupo:
-        calcularFrecuenciasGrupo(actual_grupo.dato, matriz_f_suelo)
-        actual_grupo = actual_grupo.siguiente
-    
-    actual_grupo = grupos_cultivo.primero
-    while actual_grupo:
-        calcularFrecuenciasGrupo(actual_grupo.dato, matriz_f_cultivo)
+        calcularFrecuenciasGrupoUnificado(actual_grupo.dato, matriz_f_suelo, matriz_f_cultivo)
         actual_grupo = actual_grupo.siguiente
     
     print(f"Campo {campo.id} procesado con exito")
@@ -167,8 +249,7 @@ def procesarCampo(campo):
         'matriz_f_cultivo': matriz_f_cultivo,
         'matriz_p_suelo': matriz_p_suelo,
         'matriz_p_cultivo': matriz_p_cultivo,
-        'grupos_suelo': grupos_suelo,
-        'grupos_cultivo': grupos_cultivo
+        'grupos_unificados': grupos_unificados
     }
 
 #OBTENER ELEMENTO POR INDICE DE ListaEnlazada
