@@ -242,3 +242,62 @@ class GrupoEstacionesUnificado:
             actual = actual.siguiente
         return (f"GrupoUnificado({self.estaciones.tamaño()} estaciones: {', '.join(estaciones_str)})")
     
+
+class MatrizReducida:
+    #MATRIZ REDUCIDA DESPUES DEL AGRUPAMIENTO
+    def __init__(self, grupos_unificados, matriz_original, tipo_sensor):
+        self.grupos = grupos_unificados
+        self.matriz_original = matriz_original
+        self.tipo_sensor = tipo_sensor #Suelo o cultivo
+        self.filas = ListaEnlazada()
+        self._construir_matriz()
+
+    #MATRIZ REDUCIDA A PARTIR DE LOS GRUPOS
+    def _construir_matriz(self):
+        #Fila de frecuencias totales para cada grupo
+        actual_grupo = self.grupos.primero
+        while actual_grupo:
+            grupo = actual_grupo.dato
+
+            if self.tipo_sensor == 'suelo':
+                frecuencias = grupo.frecuencias_totales_suelo
+            else: 
+                frecuencias = grupo.frecuencias_totales_cultivo
+
+            #Para agregar la fila de frecuencias
+            self.filas.agregar(frecuencias)
+            actual_grupo = actual_grupo.siguiente
+
+    #OBTENER VALOR DE LA MATRIZ REDUCIDA
+    def obtener_valor(self, idGrupo, idSensor):
+        #Obtener indice del sensor
+        idx_sensor = 0
+        actual_sensor = self.matriz_original.sensores.primero
+        while actual_sensor:
+            if actual_sensor.dato == idSensor:
+                break
+            idx_sensor += 1
+            actual_sensor = actual_sensor.siguiente
+
+        if idx_sensor >= self.matriz_original.sensores.tamaño():
+            return 0
+        
+        #Obtener fila del grupo
+        fila = self._obtener_elemento_lista(self.filas, idGrupo)
+        if not fila:
+            return 0
+        
+        #Obtener el valor
+        return self._obtener_elemento_lista(fila, idx_sensor)
+    
+    #OBTENER ELEMENTO DE ListaEnlazada POR INDICE
+    def _obtener_elemento_lista(self, lista, indice):
+        actual = lista.primero
+        for i in range(indice):
+            if actual is None:
+                return None
+            actual = actual.siguiente
+        return actual.dato if actual else None
+    
+    def __str__(self):
+        return f"MatrizReducida({self.grupos.tamaño()}x{self.matriz_original.sensores.tamaño()})"

@@ -1,4 +1,4 @@
-from modelos import MatrizFrecuencia, MatrizPatron, GrupoEstaciones, GrupoEstacionesUnificado
+from modelos import MatrizFrecuencia, MatrizPatron, GrupoEstaciones, GrupoEstacionesUnificado, MatrizReducida
 from lista import ListaEnlazada
 
 #MATRIZ DE FRECUENCIA PARA SENSORES DE SUELO
@@ -241,7 +241,10 @@ def procesarCampo(campo):
     while actual_grupo:
         calcularFrecuenciasGrupoUnificado(actual_grupo.dato, matriz_f_suelo, matriz_f_cultivo)
         actual_grupo = actual_grupo.siguiente
-    
+
+    #Crear matrices reducidas
+    matriz_reducida_suelo = MatrizReducida(grupos_unificados, matriz_f_suelo, 'suelo')
+    matriz_reducida_cultivo = MatrizReducida(grupos_unificados, matriz_f_cultivo, 'cultivo')
     print(f"Campo {campo.id} procesado con exito")
     
     return {
@@ -249,7 +252,10 @@ def procesarCampo(campo):
         'matriz_f_cultivo': matriz_f_cultivo,
         'matriz_p_suelo': matriz_p_suelo,
         'matriz_p_cultivo': matriz_p_cultivo,
-        'grupos_unificados': grupos_unificados
+        'grupos_unificados': grupos_unificados,
+        'matriz_reducida_suelo': matriz_reducida_suelo,
+        'matriz_reducida_cultivo': matriz_reducida_cultivo
+
     }
 
 #OBTENER ELEMENTO POR INDICE DE ListaEnlazada

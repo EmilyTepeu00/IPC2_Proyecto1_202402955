@@ -180,10 +180,20 @@ def main():
                                 )
 
                             elif opcionGrafica == "5":
-                                print("faltaaa")    
+                                #Matriz reducida suelo
+                                generador.graficaMatrizReducida(
+                                    resultado['matriz_reducida_suelo'],
+                                    f"Matriz Reducida Suelo - {campoSeleccionado.nombre}",
+                                    f"{nombreBase}_reducida_suelo"
+                                )   
                             
                             elif opcionGrafica == "6":
-                                print("faltaaa")
+                                #Matriz reducida cultivo
+                                generador.graficaMatrizReducida(
+                                    resultado['matriz_reducida_cultivo'],
+                                    f"Matriz Reducida Cultivo - {campoSeleccionado.nombre}",
+                                    f"{nombreBase}_reducida_cultivo"
+                                )
 
                             elif opcionGrafica == "7":
                                 generador.graficaGrupos(
