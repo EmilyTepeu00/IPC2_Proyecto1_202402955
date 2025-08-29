@@ -1,5 +1,6 @@
 from xml_utils import cargar_xml, escribir_xml_salida
 from procesamiento import procesarCampo
+from graficas import GeneradorGraficas
 
 def mostrarDatos():
     print("\n" + "*"*50)
@@ -118,8 +119,87 @@ def main():
 
         #GENERAR GRAFICA
         elif opcion == "5":
-            if datos_cargados:
-                print("no hay")
+            if datos_cargados and datos_procesados:
+                print("\nGENERAR GRAFICA")
+                print("Campos disponibles: ")
+
+                #Mostrar campos disponibles
+                for i, campo in enumerate(datos_cargados, 1):
+                    print(f"{i}. {campo.nombre}")
+
+                    try:
+                        opcionCampo = int(input("Seleccione el campo: ")) - 1
+                        if 0 <= opcionCampo < len(datos_cargados):
+                            campoSeleccionado = datos_cargados[opcionCampo]
+                            resultado = datos_procesados[opcionCampo]
+
+                            print("\nTipos de grafica disponibles: ")
+                            print("1. Matriz de Frecuencias (suelo)")
+                            print("2. Matriz de Frecuencias (cultivo)")
+                            print("3. Matriz de Patrones (suelo)")
+                            print("4. Matriz de Patrones (cultivo)")
+                            print("5. Matriz de Reducida (suelo)")
+                            print("6. Matriz de Reducida (cultivo)")
+                            print("7. Grupos de Estaciones")
+
+                            opcionGrafica = input("Selecciones el tipo de grafica: ").strip()
+
+                            nombreBase = (f"campo_{campoSeleccionado.id}")
+                            generador = GeneradorGraficas()
+
+                            if opcionGrafica == "1":
+                                generador.graficaMatriz(
+                                    resultado['matriz_f_suelo'],
+                                    f"Matriz Frecuencias Suelo - {campoSeleccionado.nombre}",
+                                    'frecuencia',
+                                    f"{nombreBase}_frecuencia_suelo"
+                                )
+
+                            elif opcionGrafica == "2":
+                                generador.graficaMatriz(
+                                    resultado['matriz_f_cultivo'],
+                                    f"Matriz Frecuencias Cultivo - {campoSeleccionado.nombre}",
+                                    'frecuencia',
+                                    f"{nombreBase}_frecuencia_cultivo"
+                                )
+
+                            elif opcionGrafica == "3":
+                                generador.graficaMatriz(
+                                    resultado['matriz_p_suelo'],
+                                    f"Matriz de Patrones Suelo - {campoSeleccionado.nombre}",
+                                    'patron',
+                                    f"{nombreBase}_patron_suelo"
+                                )
+
+                            elif opcionGrafica == "4":
+                                generador.graficaMatriz(
+                                    resultado['matriz_p_cultivo'],
+                                    f"Matriz de Patrones Cultivo - {campoSeleccionado.nombre}",
+                                    'patron',
+                                    f"{nombreBase}_patron_cultivo"
+                                )
+
+                            elif opcionGrafica == "5":
+                                print("faltaaa")    
+                            
+                            elif opcionGrafica == "6":
+                                print("faltaaa")
+
+                            elif opcionGrafica == "7":
+                                generador.graficaGrupos(
+                                    resultado['grupos_unificados'],
+                                    f"{nombreBase}_grupos"
+                                )
+                                                        
+                            else:
+                                print("Opcion no valida")
+
+                        else:
+                            print("Numero de campo no valido")
+
+                    except ValueError:
+                        print("Ingrese un numero valido")
+                        
             else:
                 print("\nERROR: Primero debe cargar un archivo")
 
